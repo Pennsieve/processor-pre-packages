@@ -1,7 +1,6 @@
 version: '3.9'
 
 services:
-  
   pre-processor:
     env_file:
       - dev.env
@@ -11,5 +10,5 @@ services:
     container_name: pre-processor
     build:
       context: .
-      dockerfile: ./Dockerfile_arm64 # change to Dockerfile on Linux
+      dockerfile: ./Dockerfile #_arm64 # change to Dockerfile on Linux
     entrypoint: /service/main

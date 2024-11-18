@@ -36,12 +36,16 @@ func main() {
 	if err := json.Unmarshal(integrationResponse, &integration); err != nil {
 		logger.ErrorContext(context.Background(), err.Error())
 	}
+	fmt.Println("INTEGRATION: ")
 	fmt.Println(integration)
 
+
+	// retrieves the presigned urls from the package IDs and validates an outputted manifest
 	manifest, err := getPresignedUrls(apiHost, getPackageIds(integration.PackageIDs), sessionToken)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	fmt.Println("MANIFEST: ")
 	fmt.Println(string(manifest))
 	var payload Manifest
 	if err := json.Unmarshal(manifest, &payload); err != nil {
@@ -49,19 +53,44 @@ func main() {
 	}
 
 	// copy files into input directory
-	fmt.Println(payload.Data)
+	// TODO: change this code to use the agent
+	datasetID := integration.DatasetNodeID
+	fmt.Println("DATASETID: ")
+	fmt.Println(datasetID)
+
+
+	// payloadJson, err := json.Marshal(payload.Data)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// fmt.Println("PAYLOADJSON: ")
+	// fmt.Println(payloadJson)
+
 	for _, d := range payload.Data {
-		cmd := exec.Command("wget", "-O", d.FileName, d.Url)
-		cmd.Dir = inputDir
-		var out strings.Builder
-		var stderr strings.Builder
-		cmd.Stdout = &out
-		cmd.Stderr = &stderr
-		if err := cmd.Run(); err != nil {
-			logger.Error(err.Error(),
-				slog.String("error", stderr.String()))
+		cmd := exec.Command("/bin/sh", "./agent.sh", datasetID, inputDir, d.NodeId) //, d.NodeId
+		out, err := cmd.Output()
+		if err != nil {
+			log.Fatalf("error %s", err)
 		}
+		output := string(out)
+		fmt.Println("OUTPUT: ")
+		fmt.Println(output)
 	}
+	
+
+	// for _, d := range payload.Data {
+	// 	fmt.Println(d)
+	// 	cmd := exec.Command("wget", "-O", d.FileName, d.Url)
+	// 	cmd.Dir = inputDir
+	// 	var out strings.Builder
+	// 	var stderr strings.Builder
+	// 	cmd.Stdout = &out
+	// 	cmd.Stderr = &stderr
+	// 	if err := cmd.Run(); err != nil {
+	// 		logger.Error(err.Error(),
+	// 			slog.String("error", stderr.String()))
+	// 	}
+	// }
 }
 
 type Packages struct {
