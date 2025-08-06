@@ -1,0 +1,23 @@
+{
+  "name": "processor-pre-packages",
+  "description": "processor-pre-packages",
+  "version": "1.0.0",
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "Packages",
+      "description": "Package files",
+      "path": "/output",
+      "files": [
+        {
+          "id": "package_file",
+          "description": "A package file",
+          "ext": "*",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "params": [],
+  "depends_on": []
+}
