@@ -22,6 +22,7 @@ func main() {
 	integrationID := os.Getenv("INTEGRATION_ID")
 	logger.Info(integrationID)
 	inputDir := os.Getenv("INPUT_DIR")
+	outputDir := os.Getenv("OUTPUT_DIR")
 
 	// get input files
 	sessionToken := os.Getenv("SESSION_TOKEN")
@@ -48,11 +49,17 @@ func main() {
 		logger.ErrorContext(context.Background(), err.Error())
 	}
 
-	// copy files into input directory
+	// copy files into copy directory
+	copyDir := outputDir
+	if integration.WorkflowUuid == "" {
+		fmt.Println("no workflow uuid, using input dir as copy dir")
+		copyDir = inputDir
+	}
 	fmt.Println(payload.Data)
 	for _, d := range payload.Data {
 		cmd := exec.Command("wget", "-v", "-O", d.FileName, d.Url)
-		cmd.Dir = inputDir
+
+		cmd.Dir = copyDir
 		var out strings.Builder
 		var stderr strings.Builder
 		cmd.Stdout = &out
@@ -99,6 +106,7 @@ type Integration struct {
 	DatasetNodeID string      `json:"datasetId"`
 	PackageIDs    []string    `json:"packageIds"`
 	Params        interface{} `json:"params"`
+	WorkflowUuid  string      `json:"workflowUuid"`
 }
 
 func getPresignedUrls(apiHost string, packages Packages, sessionToken string) ([]byte, error) {
@@ -134,7 +142,7 @@ func getPackageIds(packageIds []string) Packages {
 }
 
 func getIntegration(apiHost string, integrationId string, sessionToken string) ([]byte, error) {
-	url := fmt.Sprintf("%s/integrations/%s", apiHost, integrationId)
+	url := fmt.Sprintf("%s/workflows/instances/%s", apiHost, integrationId)
 
 	req, _ := http.NewRequest("GET", url, nil)
 
